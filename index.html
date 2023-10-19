@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <div id="player"></div>
+
+  <script>
+    var tag = document.createElement('script');
+
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '360',
+        width: '640',
+        videoId: 'cGchzyK08DI',
+        playerVars: { controls: 0 },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerReady(event) {
+      event.target.playVideo();
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data == YT.PlayerState.UNSTARTED) {
+        chrome.webview.postMessage('UNSTARTED,' + player.getDuration().toString());
+      } else if (event.data == YT.PlayerState.ENDED) {
+        chrome.webview.postMessage('ENDED');
+      } else if (event.data == YT.PlayerState.PLAYING) {
+        chrome.webview.postMessage('PLAYING');
+      } else if (event.data == YT.PlayerState.PAUSED) {
+        chrome.webview.postMessage('PAUSED');
+      } else if (event.data == YT.PlayerState.BUFFERING) {
+        chrome.webview.postMessage('BUFFERING');
+      //} else if (event.data == YT.PlayerState.CUED) { // これいつ来るんだろう？
+        //chrome.webview.postMessage('CUED,' + player.getDuration().toString());
+      } else {
+        chrome.webview.postMessage(event.data.toString());
+      }
+    }
+
+    //function loadVideoById(videoId) { player.loadVideoById(videoId); } // loadVideoByIdはイベントが来ずいきなり再生される
+    function cueVideoById(videoId) { player.cueVideoById(videoId); } // こっちのほうがいい
+    function playVideo() { player.playVideo(); }
+    function pauseVideo() { player.pauseVideo(); }
+    function stopVideo() { player.stopVideo(); }
+    function setVolume(volume) { player.setVolume(volume); } // 0～100 の整数値
+    function mute() { player.mute(); }
+    function unMute() { player.unMute(); }
+    function getPlayerState() { return player.getPlayerState().toString(); }
+    function getCurrentTime() { return player.getCurrentTime().toString(); }
+    function seekTo(seconds, allowSeekAhead) { player.seekTo(seconds, allowSeekAhead); }
+  </script>
+</body>
+</html>
